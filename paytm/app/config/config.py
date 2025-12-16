@@ -1,0 +1,11 @@
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+URL=os.getenv("URL")
+SECRET_KEY=os.getenv("SECRET_KEY")
+ALGORITHAM=os.getenv("ALGORITHAM")
+ACCESS_TOKEN_EXPIRE_MINUTES=os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+
+print(URL,SECRET_KEY,ALGORITHAM,ACCESS_TOKEN_EXPIRE_MINUTES)
+print(type(ACCESS_TOKEN_EXPIRE_MINUTES))
