@@ -13,8 +13,8 @@ def get_service(db:Session=Depends(get_db))->Transaction:
     return TransactionService(db)
 
 @trans_router.get("/findByTxnId/{id}",response_model=TransactionResponse)
-def find_by_id(id:str,service:TransactionService=Depends(get_service)):
-    return service.find_by_txn_id(id)
+def find_by_id(id:str,current:User=Depends(current_user),service:TransactionService=Depends(get_service)):
+    return service.find_by_txn_id(id,current)
 
 @trans_router.get("/findByWallet/{id}",response_model=List[TransactionResponse])
 def find_by_wallet(id:int,service:TransactionService=Depends(get_service)):
