@@ -5,19 +5,24 @@ from app.models.transaction import Transaction
 from app.schemas.transaction import TransactionResponse,PaymentMethod
 from typing import List
 from app.database.database import get_db
-
+from app.security.path import current_user
+from app.models.user import User
 trans_router=APIRouter(prefix="/transactions")
 
 def get_service(db:Session=Depends(get_db))->Transaction:
     return TransactionService(db)
 
 @trans_router.get("/findByTxnId/{id}",response_model=TransactionResponse)
-def find_by_id(id:str,service:TransactionService=Depends(get_service),db:Session=Depends(get_db)):
+def find_by_id(id:str,service:TransactionService=Depends(get_service)):
     return service.find_by_txn_id(id)
 
 @trans_router.get("/findByWallet/{id}",response_model=List[TransactionResponse])
 def find_by_wallet(id:int,service:TransactionService=Depends(get_service)):
     return service.find_by_wallet(id)
+
+@trans_router.get("/mytransactions",response_model=List[TransactionResponse])
+def list_transactions(user:User=Depends(current_user),service:TransactionService=Depends(get_service)):
+    return service.find_my_transactions(user)
 
 @trans_router.get("/findByPayment/{payment}",response_model=List[TransactionResponse])
 def find_by_payment(payment:PaymentMethod,service:TransactionService=Depends(get_service)):

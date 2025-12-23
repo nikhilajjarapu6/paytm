@@ -17,8 +17,7 @@ class WalletService:
     def __init__(self,db:Session):
         self.repo=WalletRepo(db)
     
-    def add_balance(self,wallet_id:int,amount:Decimal,current:User)->Optional[Wallet]:
-        wallet=self.repo.find_by_user_id(current.id)
+    def add_balance(self,wallet_id:int,amount:Decimal)->Optional[Wallet]:
         if amount<=0 :
             raise NegativeBalException(wallet_id,amount)
         
@@ -31,7 +30,7 @@ class WalletService:
         self.repo.save(wallet)
         return wallet
     
-    def add_money(self,amount:Decimal,current:User)->Optional[Wallet]:
+    def add_money_auth(self,amount:Decimal,current:User)->Optional[Wallet]:
         wallet=self.repo.find_by_user_id(current.id)
         if amount<=0 :
             raise NegativeBalException(wallet.id,amount)
@@ -59,7 +58,7 @@ class WalletService:
         self.repo.save(wallet)
         return wallet
     
-    def deduct_balance(self,amount:Decimal,current:User)->Optional[Wallet]:
+    def deduct_balance_auth(self,amount:Decimal,current:User)->Optional[Wallet]:
         wallet=self.repo.find_by_user_id(current.id)
         if amount<0 :
            raise NegativeBalException(wallet.id,amount)  
@@ -80,11 +79,11 @@ class WalletService:
         return fetched
     
     
-    def find_wallet_by_user_id(self,current:User)->Optional[Wallet]:
-        fetched=self.repo.find_by_user_id(current.id)
+    def find_wallet_by_user_id(self,id:int)->Optional[Wallet]:
+        fetched=self.repo.find_by_user_id(id)
         if not fetched:
-            raise UserNotFoundException(current.id)
-        ownership(current.id,fetched.user_id)
+            raise UserNotFoundException(id)
+        ownership(id,fetched.user_id)
         return fetched
     
     def check_balance(self,wallet_id:int)->Decimal|None:
