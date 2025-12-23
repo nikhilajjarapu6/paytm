@@ -8,6 +8,8 @@ from app.services.wallet_service import WalletService
 from decimal import Decimal
 from app.exceptions.payment_exceptions import TxnNotFoundException
 from app.exceptions.wallet_exceptions import WalletNotFoundException
+from app.exceptions.user_exceptions import UserForbidden
+from app.models.user import User
 
 class TransactionService:
     def __init__(self,db:Session):
@@ -41,11 +43,31 @@ class TransactionService:
         txn.transaction_status=TransactionStatus.REVERSED
         return self.repo.add(txn)
     
-    def find_by_txn_id(self,txt_id:str)->Optional[Transaction]:
+    def find_by_txn_id(self,txt_id:str,current:User)->Optional[Transaction]:
        transaction=self.repo.find_by_txn_id(txt_id)
        if not transaction :
           raise TxnNotFoundException(id)
+       wallet = WalletService.find_wallet_by_user_id(current.id)
+       
        return transaction
+    
+    def find_my_transactions(self, current: User) -> List[Transaction]:
+      wallet_service = WalletService(self.repo.db)
+      wallet = wallet_service.find_wallet_by_user_id(current.id)
+      return self.repo.find_by_wallet(wallet.id)
+
+    
+    def find_by_txnid_auth(self,txn_id:str,current:User)->Optional[Transaction]:
+       transaction=self.repo.find_by_txn_id(txn_id)
+       if not transaction :
+          raise TxnNotFoundException(id)
+       sender=WalletService.find_wallet_by_id(transaction.sender_id)
+       receiver=WalletService.find_wallet_by_id(transaction.receiver_id)
+       if sender.user_id !=current.id:
+          raise UserForbidden(sender.user_id)
+       
+       return transaction
+
     
     def find_by_wallet(self,id:int)->List[Transaction]:
        wallet=self.repo.find_by_wallet(id)
