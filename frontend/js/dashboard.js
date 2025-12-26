@@ -1,6 +1,7 @@
 const sendBtn = document.querySelector('.send');
 const modal = document.getElementById('sendModal');
 const closeBtn = document.getElementById('closeModal');
+const token = localStorage.getItem('access_token');
 
 // Open Modal
 sendBtn.addEventListener('click', () => {
@@ -90,6 +91,7 @@ editForm.addEventListener('submit', (e) => {
     const newName = document.getElementById('editName').value;
     const newUpi = document.getElementById('editUpi').value;
     const newEmail = document.getElementById('editEmail').value;
+    const password=document.getElementById('editPassword').value;
 
     // Update the Dashboard UI
     displayName.innerText = newName;
@@ -172,3 +174,111 @@ function handleLogout() {
         }, 500);
     }
 }
+
+// Function to fetch and render transactions
+async function loadTransactions() {
+    const token = localStorage.getItem('access_token');
+    const txListContainer = document.querySelector('.tx-list');
+
+    // 1. Check if token exists, otherwise redirect to login
+    if (!token) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    try {
+        // 2. Fetch from FastAPI
+        const response = await fetch('http://localhost:8000/transactions/mytransactions', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const transactions = await response.json();
+            
+            // 3. Clear existing static items (except the "See All" button)
+            txListContainer.innerHTML = '';
+
+            // 4. Loop through data and create HTML
+            transactions.forEach(tx => {
+                const isCredit = tx.amount > 0;
+                const txHTML = `
+                    <div class="tx-container">
+                        <div class="tx ${isCredit ? 'credit' : 'debit'}" onclick="toggleDetails(this)">
+                            <div class="tx-info">
+                                <span class="name">${tx.receiver_id}</span>
+                                <span class="date">${new Date(tx.created_at).toLocaleString()} • ${tx.payment_method}</span>
+                            </div>
+                            <div class="tx-right">
+                                <span class="amount">${isCredit ? '+' : '-'} ₹${Math.abs(tx.amount)}</span>
+                                <span class="arrow-icon">▼</span>
+                            </div>
+                        </div>
+                        <div class="tx-details">
+                            <div class="details-grid">
+                                <div class="detail-item"><strong>Txn ID</strong><span>${tx.txn_id}</span></div>
+                                <div class="detail-item"><strong>Status</strong><span class="status-success">Success</span></div>
+                                <div class="detail-item"><strong>Category</strong><span>${tx.payment_method}</span></div>
+                                <div class="detail-item"><strong>Note</strong><span>${tx.description || 'N/A'}</span></div>
+                            </div>
+                        </div>
+                    </div>`;
+                txListContainer.insertAdjacentHTML('beforeend', txHTML);
+            });
+        } else {
+            console.error("Failed to fetch transactions");
+        }
+    } catch (error) {
+        console.error("Server Error:", error);
+    }
+}
+
+
+
+//function for handling sending money
+const sendMoney=document.getElementById('sendMoneyForm')
+sendMoney.addEventListener('submit',async(e)=>{
+    e.preventDefault()
+
+    const payload={
+        receiver_id: document.getElementById('sendReceiver').value,
+        amount: parseFloat(document.getElementById('sendAmount').value),
+        payment_method: document.getElementById('sendMethod').value,
+        description: document.getElementById('sendDescription').value
+    }
+
+    try {
+        const res=await fetch("http://localhost:8000/transactions/send",{
+            method:"POST",
+            headers:{
+                'Authorization':`Bearer ${token}`,
+                'Content-type':'application/json'
+            },
+            body:JSON.stringify(payload)
+        })
+
+        if (res){
+            const result=await res.json()
+            alert("Payment Successful! Txn ID: " + result.txn_id);
+
+            sendMoney.reset(); 
+            document.getElementById('sendModal').classList.remove('active'); 
+            
+            loadTransactions(); 
+        }
+        else{
+            const errorData=await res.json()
+            alert("Payment Failed: " + (errorData.detail || "Unknown Error"));
+        }
+    } catch (error) {
+        console.error("Connection Error:", error);
+        alert("Server is down. Please try again later.");
+    }
+})
+
+
+// Call the function when the page loads
+document.addEventListener('DOMContentLoaded', loadTransactions);
