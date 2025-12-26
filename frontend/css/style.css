@@ -55,26 +55,7 @@ body::before {
     max-width: 420px;
 }
 
-/* Glass Card */
-.card {
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    padding: 32px 26px;
-    border-radius: 16px;
-    box-shadow:
-        0 25px 45px rgba(0, 0, 0, 0.25),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
 
-/* Headings */
-.card h2 {
-    text-align: center;
-    color: #002970;
-    font-size: 22px;
-    margin-bottom: 6px;
-}
 
 .subtitle {
     text-align: center;
@@ -124,7 +105,7 @@ body::before {
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
     
     width: 100%;
-    max-width: 400px;
+    max-width: 650px;
 }
 
 /* Adjust text for visibility on B&W background */
@@ -356,13 +337,13 @@ button:hover {
     position: relative;
     width: 85px;
     height: 85px;
-    margin: 0 auto 15px;
+    margin: 0px 0px 10px  0px;
 }
 
 .profile-pic {
     width: 100%;
     height: 100%;
-    border-radius: 50%;
+    border-radius: 30%;
     object-fit: cover;
     border: 3px solid #fff;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -402,7 +383,7 @@ button:hover {
 
 .user-tags {
     display: flex;
-    justify-content: center;
+    justify-content: start;
     gap: 8px;
     margin: 8px 0;
 }
@@ -411,8 +392,8 @@ button:hover {
     font-size: 10px;
     background: rgba(0, 0, 0, 0.05);
     padding: 3px 8px;
-    border-radius: 12px;
-    color: #555;
+    border-radius: 6px;
+    color: #ffffff;
 }
 
 .tag.kyc {
@@ -650,6 +631,7 @@ button:hover {
 
 /* MODAL OVERLAY */
 .modal-overlay {
+    color: black;
     position: fixed;
     top: -50px;
     left: 0;
@@ -672,9 +654,51 @@ button:hover {
     padding: 30px;
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    
+    color: black;
     /* Animation for a smooth entrance */
     animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+/* TARGETING LABELS INSIDE MODALS */
+.modal-content label {
+    color: #002970 !important; /* Deep Blue for readability */
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 8px;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* TARGETING INPUTS INSIDE MODALS */
+.modal-content input, 
+.modal-content select {
+    background: #ffffff !important; /* Solid white background for contrast */
+    color: #333333 !important; /* Dark text for typing */
+    border: 2px solid #e5e7eb !important; /* Light grey border */
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+/* INPUT FOCUS STATE (Blue Border) */
+.modal-content input:focus, 
+.modal-content select:focus {
+    border-color: #00baf2 !important; /* Paytm Blue border on click */
+    box-shadow: 0 0 0 4px rgba(0, 186, 242, 0.1);
+    outline: none;
+}
+
+/* PLACEHOLDER COLOR */
+.modal-content input::placeholder {
+    color: #9ca3af !important;
+}
+
+/* HEADER COLOR IN POPUPS */
+.modal-header h3 {
+    color: #002970 !important;
+    font-size: 20px;
+    font-weight: 800;
 }
 
 @keyframes modalPop {
