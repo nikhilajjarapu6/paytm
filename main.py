@@ -7,10 +7,18 @@ from app.routers.wallet_router import wallet_router
 from app.routers.payment_router import payment_router
 from app.routers.transaction_rounter import trans_router
 from app.exceptions.base import PaymentException
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app=FastAPI(title="Paytm clone",description="Digital Wallet System",version="1.0.0")
 Base.metadata.create_all(bind=engine)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # In production, replace with your specific domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def health_check():
