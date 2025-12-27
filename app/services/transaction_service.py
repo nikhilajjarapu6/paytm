@@ -81,3 +81,12 @@ class TransactionService:
     def find_by_payment(self,payment:PaymentMethod)->List[Transaction]:
        print(payment, type(payment))
        return self.repo.find_by_payment_type(payment)
+    
+    def date_sorted_transactions(self,sort:str,current:User)->List[Transaction]:
+       service = WalletService(self.repo.db)
+       wallet=service.find_wallet_by_user_id(current.id)
+       if not wallet:
+          raise WalletNotFoundException(wallet.id)
+
+       return self.repo.find_transaction_by_date(wallet.id,sort)
+    
