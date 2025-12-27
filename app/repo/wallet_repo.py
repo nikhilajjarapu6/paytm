@@ -12,6 +12,7 @@ class WalletRepo:
 
     def save(self, data: Wallet) -> Wallet:
         self.db.add(data)
+        # self.db.commit()
         return data
 
     def find_by_id(self, id: int) -> Optional[Wallet]:

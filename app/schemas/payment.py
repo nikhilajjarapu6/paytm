@@ -4,7 +4,6 @@ from app.models.transaction import PaymentMethod,TransactionStatus
 from datetime import datetime
 
 class PaymentRequest(BaseModel):
-    sender_id:int
     receiver_id: int
     amount: Decimal
     payment_method: PaymentMethod

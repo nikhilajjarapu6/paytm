@@ -9,6 +9,7 @@ class TransactionRepo:
 
     def add(self, txn: Transaction) -> Transaction:
         self.db.add(txn)
+        self.db.commit()
         return txn
 
     def find_by_id(self, id: int) -> Optional[Transaction]:

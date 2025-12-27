@@ -41,7 +41,7 @@
 
       <div class="wallet-panel">
         <p class="label">Wallet Balance</p>
-        <h1 class="balance">₹12,450.75</h1>
+        <h1 class="balance">₹00000</h1>
         <div class="actions">
           <button class="send">Send</button>
           <button class="receive">Receive</button>
@@ -124,28 +124,28 @@
         <form id="sendMoneyForm">
             <div class="input-group">
                 <label>Receiver ID</label>
-                <input type="text" placeholder="Enter UPI ID or Mobile" required>
+                <input type="text" id="sendReceiver" placeholder="Enter UPI ID or Mobile" value="2" required>
             </div>
 
             <div class="input-group">
                 <label>Amount (₹)</label>
-                <input type="number" placeholder="0.00" required>
+                <input type="number" id="sendAmount" placeholder="0.00"  value="50" required>
             </div>
 
             <div class="input-group">
                 <label>Payment Method</label>
                 <select class="method-select" required>
                     <option value="" disabled selected>Select Method</option>
-                    <option value="upi">UPI Pay</option>
-                    <option value="wallet">Paytm Wallet</option>
-                    <option value="debit">Debit Card</option>
-                    <option value="credit">Credit Card</option>
+                    <option value="UPI">UPI Pay</option>
+                    <option id="sendMethod" value="WALLET">Paytm Wallet</option>
+                    <option value="DEBIT_CARD">Debit Card</option>
+                    <option value="CEDIT_CARD">Credit Card</option>
                 </select>
             </div>
 
             <div class="input-group">
                 <label>Description</label>
-                <input type="text" placeholder="What's this for?">
+                <input type="text" id="sendDescription" placeholder="What's this for?" value="test ui">
             </div>
 
             <button type="submit" class="action-btn add">Confirm Payment</button>

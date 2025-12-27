@@ -202,6 +202,7 @@ async function loadTransactions() {
     const token = localStorage.getItem('access_token');
     const txListContainer = document.querySelector('.tx-list');
 
+
     // 1. Check if token exists, otherwise redirect to login
     if (!token) {
         window.location.href = "login.html";
@@ -273,7 +274,7 @@ sendMoney.addEventListener('submit',async(e)=>{
     }
 
     try {
-        const res=await fetch("http://localhost:8000/transactions/send",{
+        const res=await fetch("http://localhost:8000/payment/payment_send",{
             method:"POST",
             headers:{
                 'Authorization':`Bearer ${token}`,
@@ -282,10 +283,11 @@ sendMoney.addEventListener('submit',async(e)=>{
             body:JSON.stringify(payload)
         })
 
-        if (res){
+        if (res.ok){
             const result=await res.json()
             alert("Payment Successful! Txn ID: " + result.txn_id);
-
+            console.log(result);
+            
             sendMoney.reset(); 
             document.getElementById('sendModal').classList.remove('active'); 
             
@@ -293,6 +295,8 @@ sendMoney.addEventListener('submit',async(e)=>{
         }
         else{
             const errorData=await res.json()
+            console.log(errorData);
+
             alert("Payment Failed: " + (errorData.detail || "Unknown Error"));
         }
     } catch (error) {
@@ -301,6 +305,33 @@ sendMoney.addEventListener('submit',async(e)=>{
     }
 })
 
+async function loadBalance(){
+    try {
+       const res=await fetch("http://localhost:8000/wallet/check_balance",{
+        headers:{
+            "Authorization":`Bearer ${token}`
+        }
+       }) ;
+       if(!res.ok){
+            throw new Error("Failed to load balance");
+       }
+
+       const data=await res.json()
+       if(data){
+        console.log(data);
+        
+        document.querySelector('.balance').innerText = `₹${data}`;
+       }
+
+    } catch (error) {
+        console.error(err);
+        alert("Unable to load balance");
+    }
+}
+
 
 // Call the function when the page loads
-document.addEventListener('DOMContentLoaded', loadTransactions);
+document.addEventListener('DOMContentLoaded', () => {
+    loadBalance();
+    loadTransactions();
+});

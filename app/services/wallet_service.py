@@ -15,6 +15,7 @@ from app.utils.authorization import ownership
 
 class WalletService:
     def __init__(self,db:Session):
+        self.db=db
         self.repo=WalletRepo(db)
     
     def add_balance(self,wallet_id:int,amount:Decimal)->Optional[Wallet]:
@@ -30,24 +31,27 @@ class WalletService:
         self.repo.save(wallet)
         return wallet
     
-    def add_money_auth(self,amount:Decimal,current:User)->Optional[Wallet]:
-        wallet=self.repo.find_by_user_id(current.id)
-        if amount<=0 :
-            raise NegativeBalException(wallet.id,amount)
+    def add_balance_auth(self,rec_id:int,amount:Decimal,current:User)->Optional[Wallet]:
+        try:
+                wallet=self.repo.find_by_id(rec_id)
+                if amount<=0 :
+                    raise NegativeBalException(wallet.id,amount)
 
-        if not wallet:
-            raise WalletNotFoundException(wallet.id)
-        if not wallet.is_active:
-            raise InactiveWalletException(wallet.id)
-        wallet.balance+=amount
-        self.repo.save(wallet)
-        return wallet
+                if not wallet:
+                    raise WalletNotFoundException(wallet.id)
+                if not wallet.is_active:
+                    raise InactiveWalletException(wallet.id)
+                wallet.balance+=amount
+                self.repo.save(wallet)
+                return wallet
+        except Exception as e :
+            raise e
     
 
     def deduct_balance(self,wallet_id:int,amount:Decimal)->Optional[Wallet]:
+        wallet=self.repo.find_by_id(wallet_id)
         if amount<0 :
            raise NegativeBalException(wallet_id,amount)
-        wallet=self.repo.find_by_id(wallet_id)
         if not wallet:
             raise WalletNotFoundException(wallet_id)
         if not wallet.is_active:
@@ -58,19 +62,22 @@ class WalletService:
         self.repo.save(wallet)
         return wallet
     
-    def deduct_balance_auth(self,amount:Decimal,current:User)->Optional[Wallet]:
-        wallet=self.repo.find_by_user_id(current.id)
-        if amount<0 :
-           raise NegativeBalException(wallet.id,amount)  
-        if not wallet:
-            raise WalletNotFoundException(wallet.id)
-        if not wallet.is_active:
-            raise InactiveWalletException(wallet.id)
-        if wallet.balance<amount:
-            raise InsufficientBalanceException(wallet.id,amount,wallet.balance)
-        wallet.balance-=amount
-        self.repo.save(wallet)
-        return wallet
+    def deduct_balance_auth(self,sender_id:int,amount:Decimal,current:User)->Optional[Wallet]:
+        try:
+                wallet=self.repo.find_by_id(sender_id)
+                if amount<0 :
+                    raise NegativeBalException(wallet.id,amount)  
+                if not wallet:
+                    raise WalletNotFoundException(wallet.id)
+                if not wallet.is_active:
+                    raise InactiveWalletException(wallet.id)
+                if wallet.balance<amount:
+                    raise InsufficientBalanceException(wallet.id,amount,wallet.balance)
+                wallet.balance-=amount
+                self.repo.save(wallet)
+                return wallet
+        except Exception as e:
+            raise e
     
     def find_wallet_by_id(self,wallet_id:int)->Optional[Wallet]:
         fetched= self.repo.find_by_id(wallet_id)

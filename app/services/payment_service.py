@@ -27,45 +27,50 @@ class PaymentService:
         return f"TXN{next_id + 10000}"
 
     def send(self, payment: PaymentRequest, current: User) -> Transaction:
+        try:
+            
+                sender_wallet = self.wallet_service.find_wallet_by_user_id(current.id)
+                if not sender_wallet:
+                    raise WalletNotFoundException(current.id)
 
-        sender_wallet = self.wallet_service.find_wallet_by_user_id(current.id)
-        if not sender_wallet:
-            raise WalletNotFoundException(current.id)
+                receiver_wallet = self.wallet_service.find_wallet_by_id(payment.receiver_id)
+                if not receiver_wallet:
+                    raise WalletNotFoundException(payment.receiver_id)
 
-        receiver_wallet = self.wallet_service.find_wallet_by_id(payment.receiver_id)
-        if not receiver_wallet:
-            raise WalletNotFoundException(payment.receiver_id)
+                if sender_wallet.id == receiver_wallet.id:
+                    raise WalletException(sender_wallet.id, receiver_wallet.id)
 
-        if sender_wallet.id == receiver_wallet.id:
-            raise WalletException(sender_wallet.id, receiver_wallet.id)
+                if sender_wallet.balance < payment.amount:
+                    raise InsufficientBalanceException(
+                        sender_wallet.id, payment.amount, sender_wallet.balance
+                    )
 
-        if sender_wallet.balance < payment.amount:
-            raise InsufficientBalanceException(
-                sender_wallet.id, payment.amount, sender_wallet.balance
-            )
+                txn_id = self.generate_txn_id()
 
-        txn_id = self.generate_txn_id()
+                txn = self.transaction_service.create_initiated(
+                    txn_id=txn_id,
+                    sender_id=sender_wallet.id,
+                    receiver_id=receiver_wallet.id,
+                    amount=payment.amount,
+                    payment_method=payment.payment_method,
+                    description=payment.description
+                )
 
-        txn = self.transaction_service.create_initiated(
-            txn_id=txn_id,
-            sender_id=sender_wallet.id,
-            receiver_id=receiver_wallet.id,
-            amount=payment.amount,
-            payment_method=payment.payment_method,
-            description=payment.description
-        )
+                # if payment.amount > 1000:
+                #     self.transaction_service.mark_fail(txn)
+                #     return txn
 
-        if payment.amount > 1000:
-            self.transaction_service.mark_fail(txn)
-            return txn
-
-        self.wallet_service.deduct_balance(sender_wallet.id, payment.amount)
-        self.wallet_service.add_balance(receiver_wallet.id, payment.amount)
-
-        self.transaction_service.mark_success(txn)
-        txn.payment_time = datetime.utcnow()
-        return txn
-
+                self.wallet_service.deduct_balance_auth(sender_wallet.id,payment.amount,current)
+                self.wallet_service.add_balance_auth(receiver_wallet.id,payment.amount,current)
+                print(txn.transaction_status)
+                self.transaction_service.mark_success(txn)
+                txn.payment_time = datetime.utcnow()
+                self.db.commit()        # ✅ ONE commit here
+                self.db.refresh(txn)
+                return txn
+        except Exception as e :
+        # automatic rollback
+            raise e
 
     def refund(self, txn_id: str) -> Transaction:
         with self.db.begin():
