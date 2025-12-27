@@ -84,26 +84,48 @@ closeEditBtn.addEventListener('click', () => {
 });
 
 // 3. Update Function
-editForm.addEventListener('submit', (e) => {
-    e.preventDefault(); // Prevent page refresh
+editForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-    // Get values from inputs
-    const newName = document.getElementById('editName').value;
-    const newUpi = document.getElementById('editUpi').value;
-    const newEmail = document.getElementById('editEmail').value;
-    const password=document.getElementById('editPassword').value;
+    const payload = {
+        name: document.getElementById('editName').value,
+        upi_id: document.getElementById('editUpi').value,
+        email: document.getElementById('editEmail').value,
+        password: document.getElementById('editPassword').value
+    };
 
-    // Update the Dashboard UI
-    displayName.innerText = newName;
-    displayUpi.innerText = newUpi;
-    displayEmail.innerText = newEmail;
+    try {
+        const res = await fetch("http://localhost:8000/users/update", {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
 
-    // Success effect
-    alert("Profile Updated Successfully!");
-    
-    // Close Modal
-    editModal.classList.remove('active');
+        if (!res.ok) {
+            const err = await res.json();
+            alert(err.detail || "Profile update failed");
+            return;
+        }
+
+        const updatedUser = await res.json();
+
+        
+        displayName.innerText = updatedUser.name;
+        displayUpi.innerText = updatedUser.upi_id;
+        displayEmail.innerText = updatedUser.email;
+
+        alert("Profile Updated Successfully!");
+        editModal.classList.remove('active');
+
+    } catch (error) {
+        console.error("Update Error:", error);
+        alert("Server error. Try again later.");
+    }
 });
+
 
 // Close if clicked outside
 window.addEventListener('click', (e) => {
