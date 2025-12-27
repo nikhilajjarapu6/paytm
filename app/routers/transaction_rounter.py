@@ -27,3 +27,7 @@ def list_transactions(user:User=Depends(current_user),service:TransactionService
 @trans_router.get("/findByPayment/{payment}",response_model=List[TransactionResponse])
 def find_by_payment(payment:PaymentMethod,service:TransactionService=Depends(get_service)):
     return service.find_by_payment(payment)
+
+@trans_router.get("/date_sorted/{sort}",response_model=list[TransactionResponse])
+def list_my_transaction_date(sort:str,user:User=Depends(current_user),service:TransactionService=Depends(get_service)):
+    return service.date_sorted_transactions(sort,user)

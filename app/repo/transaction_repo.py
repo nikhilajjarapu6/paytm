@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app.models.transaction import Transaction, TransactionStatus, PaymentMethod
 from typing import List, Optional
+from sqlalchemy import asc,desc,or_
 
 class TransactionRepo:
     def __init__(self, db: Session):
@@ -40,3 +41,19 @@ class TransactionRepo:
             .filter(Transaction.payment_method == method.value)
             .all()
         )
+    
+    def find_by_wallet_ordered(self, wallet_id: int, sort: str):
+        query = self.db.query(Transaction).filter(
+            or_(
+                Transaction.sender_id == wallet_id,
+                Transaction.receiver_id == wallet_id
+            )
+        )
+
+        if sort == "asc":
+            query = query.order_by(asc(Transaction.created_at))
+        else:
+            query = query.order_by(desc(Transaction.created_at))
+
+        return query.all()
+            
