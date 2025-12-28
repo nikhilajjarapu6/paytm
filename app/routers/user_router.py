@@ -36,6 +36,10 @@ def find_by_mobile(mobile:int,current:User=Depends(current_user),service:UserSer
 def update(id:int,user:UserCreate,current:User=Depends(current_user),service:UserService=Depends(get_user_service)):
     return service.update_user(id,user,current)
 
+@user_router.put("/update")
+def update(user:UserCreate,current:User=Depends(current_user),service:UserService=Depends(get_user_service)):
+    return service.update_user(user,current)
+
 @user_router.get("/list",response_model=List[UserResponse])
 def find_all(service:UserService=Depends(get_user_service)):
     return service.get_all()

@@ -116,17 +116,35 @@ const historyModal = document.getElementById('historyModal');
 const seeAllBtn = document.querySelector('.see-all-btn');
 const closeHistory = document.getElementById('closeHistory');
 
-// Open History
+// OPEN
 seeAllBtn.addEventListener('click', () => {
-    historyModal.classList.add('active');
-    document.body.style.overflow = 'hidden'; // Prevents background scroll
+    historyModal.style.display = 'flex';
+    console.log('History modal opened');
 });
 
-// Close History
+// CLOSE (X button)
 closeHistory.addEventListener('click', () => {
-    historyModal.classList.remove('active');
-    document.body.style.overflow = 'auto'; // Re-enables background scroll
+    historyModal.style.display = 'none';
+    console.log('History modal closed');
 });
+
+// CLOSE when clicking on the overlay background (anywhere outside modal-content)
+historyModal.addEventListener('click', (e) => {
+    // Close only if clicking directly on the overlay, not on any child elements
+    if (e.target.id === 'historyModal') {
+        historyModal.style.display = 'none';
+        console.log('History modal closed (background click)');
+    }
+});
+
+// Also allow Escape key to close the modal
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && historyModal.style.display === 'flex') {
+        historyModal.style.display = 'none';
+        console.log('History modal closed (Escape key)');
+    }
+});
+
 
 // Your existing toggleDetails(element) function will 
 // automatically work here because we used the same classes!
@@ -178,63 +196,82 @@ function handleLogout() {
 // Function to fetch and render transactions
 async function loadTransactions() {
     const token = localStorage.getItem('access_token');
-    const txListContainer = document.querySelector('.tx-list');
 
+<<<<<<< Updated upstream
     // 1. Check if token exists, otherwise redirect to login
     if (!token) {
         window.location.href = "login.html";
+=======
+    const dashboardList = document.getElementById('dashboardTxList');
+    const historyList = document.getElementById('historyTxList');
+
+    if (!dashboardList || !historyList) {
+        console.error("Transaction containers missing");
+>>>>>>> Stashed changes
         return;
     }
 
     try {
-        // 2. Fetch from FastAPI
-        const response = await fetch('http://localhost:8000/transactions/mytransactions', {
-            method: 'GET',
+        const res = await fetch('http://localhost:8000/transactions/mytransactions', {
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+                'Authorization': `Bearer ${token}`
             }
         });
 
-        if (response.ok) {
-            const transactions = await response.json();
-            
-            // 3. Clear existing static items (except the "See All" button)
-            txListContainer.innerHTML = '';
+        if (!res.ok) return;
 
-            // 4. Loop through data and create HTML
-            transactions.forEach(tx => {
-                const isCredit = tx.amount > 0;
-                const txHTML = `
-                    <div class="tx-container">
-                        <div class="tx ${isCredit ? 'credit' : 'debit'}" onclick="toggleDetails(this)">
-                            <div class="tx-info">
-                                <span class="name">${tx.receiver_id}</span>
-                                <span class="date">${new Date(tx.created_at).toLocaleString()} • ${tx.payment_method}</span>
-                            </div>
-                            <div class="tx-right">
-                                <span class="amount">${isCredit ? '+' : '-'} ₹${Math.abs(tx.amount)}</span>
-                                <span class="arrow-icon">▼</span>
-                            </div>
-                        </div>
-                        <div class="tx-details">
-                            <div class="details-grid">
-                                <div class="detail-item"><strong>Txn ID</strong><span>${tx.txn_id}</span></div>
-                                <div class="detail-item"><strong>Status</strong><span class="status-success">Success</span></div>
-                                <div class="detail-item"><strong>Category</strong><span>${tx.payment_method}</span></div>
-                                <div class="detail-item"><strong>Note</strong><span>${tx.description || 'N/A'}</span></div>
-                            </div>
-                        </div>
-                    </div>`;
-                txListContainer.insertAdjacentHTML('beforeend', txHTML);
-            });
-        } else {
-            console.error("Failed to fetch transactions");
-        }
-    } catch (error) {
-        console.error("Server Error:", error);
+        const transactions = await res.json();
+
+        dashboardList.innerHTML = '';
+        historyList.innerHTML = '';
+
+        // 🔹 Dashboard → ONLY 4
+        transactions.slice(0, 4).forEach(tx => {
+            dashboardList.insertAdjacentHTML('beforeend', createTxHTML(tx));
+        });
+
+        // 🔹 Modal → ALL
+        transactions.forEach(tx => {
+            historyList.insertAdjacentHTML('beforeend', createTxHTML(tx));
+        });
+
+    } catch (err) {
+        console.error(err);
     }
 }
+
+function createTxHTML(tx) {
+    const isCredit = tx.amount > 0;
+
+    return `
+        <div class="tx-container">
+            <div class="tx ${isCredit ? 'credit' : 'debit'}" onclick="toggleDetails(this)">
+                <div class="tx-info">
+                    <span class="name">${tx.receiver_id}</span>
+                    <span class="date">
+                        ${new Date(tx.created_at).toLocaleString()} • ${tx.payment_method}
+                    </span>
+                </div>
+                <div class="tx-right">
+                    <span class="amount">
+                        ${isCredit ? '+' : '-'} ₹${Math.abs(tx.amount)}
+                    </span>
+                    <span class="arrow-icon">▼</span>
+                </div>
+            </div>
+
+            <div class="tx-details">
+                <div class="details-grid">
+                    <div class="detail-item"><strong>Txn ID</strong><span>${tx.txn_id}</span></div>
+                    <div class="detail-item"><strong>Status</strong><span class="status-success">Success</span></div>
+                    <div class="detail-item"><strong>Method</strong><span>${tx.payment_method}</span></div>
+                    <div class="detail-item"><strong>Note</strong><span>${tx.description || 'N/A'}</span></div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 
 
 
@@ -280,5 +317,14 @@ sendMoney.addEventListener('submit',async(e)=>{
 })
 
 
+
 // Call the function when the page loads
+<<<<<<< Updated upstream
 document.addEventListener('DOMContentLoaded', loadTransactions);
+=======
+document.addEventListener('DOMContentLoaded', () => {
+    loadTransactions();
+    loadBalance();
+    
+});
+>>>>>>> Stashed changes

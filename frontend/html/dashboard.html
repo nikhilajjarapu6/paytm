@@ -63,7 +63,7 @@
 
     <div class="transactions">
     <h4>Recent Transactions</h4>
-    <div class="tx-list">
+    <div class="tx-list" id="dashboardTxList">
         
         <div class="tx-container">
             <div class="tx credit" onclick="toggleDetails(this)">
@@ -108,8 +108,9 @@
         </div>
         
 
-        <button class="see-all-btn">See All Transactions</button>
+        
     </div>
+    <button class="see-all-btn">See All Transactions</button>
 
     
 </div>
@@ -206,77 +207,19 @@
 
 <div class="modal-overlay" id="historyModal">
     <div class="card modal-content history-card">
+
         <div class="modal-header">
             <h3>Transaction History</h3>
             <span class="close-modal" id="closeHistory">&times;</span>
         </div>
 
         <div class="history-scroll-area">
-            <div class="tx-list">
-                
-                <div class="tx-container">
-                    <div class="tx credit" onclick="toggleDetails(this)">
-                        <div class="tx-info">
-                            <span class="name">Rahul</span>
-                            <span class="date">24 Dec, 10:30 AM • Wallet</span>
-                        </div>
-                        <div class="tx-right">
-                            <span class="amount">+ ₹500</span>
-                            <span class="arrow-icon">▼</span>
-                        </div>
-                    </div>
-                    <div class="tx-details">
-                        <div class="details-grid">
-                            <div class="detail-item"><strong>Txn ID</strong><span>PAYTM_98234102</span></div>
-                            <div class="detail-item"><strong>Bank</strong><span>SBI Bank</span></div>
-                            <div class="detail-item"><strong>Status</strong><span class="status-success">Success</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tx-container">
-                    <div class="tx debit" onclick="toggleDetails(this)">
-                        <div class="tx-info">
-                            <span class="name">Amazon</span>
-                            <span class="date">22 Dec, 04:15 PM • Credit Card</span>
-                        </div>
-                        <div class="tx-right">
-                            <span class="amount">- ₹1,299</span>
-                            <span class="arrow-icon">▼</span>
-                        </div>
-                    </div>
-                    <div class="tx-details">
-                        <div class="details-grid">
-                            <div class="detail-item"><strong>Txn ID</strong><span>AMZN_5521092</span></div>
-                            <div class="detail-item"><strong>Bank</strong><span>HDFC Bank</span></div>
-                            <div class="detail-item"><strong>Status</strong><span class="status-success">Success</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tx-container">
-                    <div class="tx credit" onclick="toggleDetails(this)">
-                        <div class="tx-info">
-                            <span class="name">Zomato Cashback</span>
-                            <span class="date">20 Dec, 01:20 PM • Wallet</span>
-                        </div>
-                        <div class="tx-right">
-                            <span class="amount">+ ₹45</span>
-                            <span class="arrow-icon">▼</span>
-                        </div>
-                    </div>
-                    <div class="tx-details">
-                        <div class="details-grid">
-                            <div class="detail-item"><strong>Txn ID</strong><span>CASH_11022</span></div>
-                            <div class="detail-item"><strong>Status</strong><span class="status-success">Success</span></div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+            <div class="tx-list" id="historyTxList"></div>
         </div>
+
     </div>
 </div>
+
 
 
 </body>

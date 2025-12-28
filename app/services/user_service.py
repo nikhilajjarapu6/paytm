@@ -53,10 +53,10 @@ class UserService:
     def get_all(self)->List[User]:
         return self.repo.find_all()
     
-    def update_user(self,id:int,data:UserUpdate,current:User)->Optional[User]:
-        fetched=self.repo.get_by_id(id)
+    def update_user(self,data:UserUpdate,current:User)->Optional[User]:
+        fetched=self.repo.get_by_id(current.id)
         if not fetched:
-            raise UserNotFoundException(id)
+            raise UserNotFoundException(current.id)
         ownership(current.id,fetched.id)
         updated=data.model_dump(exclude_unset=True)
         for k,v in updated.items():
