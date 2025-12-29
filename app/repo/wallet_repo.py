@@ -8,6 +8,8 @@ class WalletRepo:
 
     def create(self, data: Wallet) -> Wallet:
         self.db.add(data)
+        self.db.commit()
+        self.db.refresh(data)
         return data
 
     def save(self, data: Wallet) -> Wallet:

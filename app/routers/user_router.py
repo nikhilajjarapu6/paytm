@@ -1,6 +1,6 @@
 from fastapi import FastAPI,HTTPException,APIRouter,Depends
 from app.services.user_service import UserService
-from app.schemas.user import UserResponse,UserCreate,UserUpdate
+from app.schemas.user import UserResponse,UserCreate,UserUpdate,EmailRequest
 from app.database.database import get_db
 from app.models.user import User
 from sqlalchemy.orm import Session
@@ -25,16 +25,22 @@ def find_by_id(id:int,current:User=Depends(current_user),service:UserService=Dep
     return service.get_user_by_id(id,current)
 
 @user_router.post("/find_by_email",response_model=UserResponse)
-def find_by_email(email:str,current:User=Depends(current_user),service:UserService=Depends(get_user_service)):
-    return service.get_user_by_email(email,current)
+def find_by_email(data:EmailRequest,current:User=Depends(current_user),service:UserService=Depends(get_user_service)):
+    return service.get_user_by_email(data.email,current)
+
+
+@user_router.get("/me", response_model=UserResponse)
+def me(current: User = Depends(current_user)):
+    # current is provided by the `current_user` dependency and is the DB user
+    return current
 
 @user_router.post("/find_by_mobile",response_model=UserResponse)
 def find_by_mobile(mobile:int,current:User=Depends(current_user),service:UserService=Depends(get_user_service)):
     return service.find_by_mobile(mobile,current)
 
-@user_router.put("/update/{id}")
-def update(id:int,user:UserCreate,current:User=Depends(current_user),service:UserService=Depends(get_user_service)):
-    return service.update_user(id,user,current)
+@user_router.put("/update")
+def update(user:UserCreate,current:User=Depends(current_user),service:UserService=Depends(get_user_service)):
+    return service.update_user(user,current)
 
 @user_router.get("/list",response_model=List[UserResponse])
 def find_all(service:UserService=Depends(get_user_service)):
