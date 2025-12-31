@@ -3,7 +3,7 @@ from sqlalchemy import text
 from app.services.wallet_service import WalletService
 from app.services.transaction_service import TransactionService
 from app.services.user_service import UserService
-from app.schemas.payment import PaymentRequest
+from app.schemas.payment import PaymentRequest,MobilePaymentRequest
 from app.models.wallet import Wallet
 from typing import List,Optional
 from app.models.transaction import Transaction
@@ -20,6 +20,7 @@ class PaymentService:
         self.db = db
         self.wallet_service = WalletService(db)
         self.transaction_service = TransactionService(db)
+        self.user_service = UserService(db)
 
     def generate_txn_id(self) -> str:
         self.db.execute(text("INSERT INTO txn_sequence VALUES ()"))
@@ -71,7 +72,40 @@ class PaymentService:
         except Exception as e :
         # automatic rollback
             raise e
+    def send_upi(self,data:MobilePaymentRequest,current:User)->Transaction:
+        receiver=self.user_service.find_by_phone(data.receiver_number)
+        if not receiver:
+                raise UserNotFoundException(data.receiver_number)
+        receiver_wallet=self.wallet_service.find_wallet_by_user_id(receiver.id)
+        if not receiver_wallet:
+                    raise WalletNotFoundException(receiver.id)
+        sender_wallet=self.wallet_service.find_wallet_by_user_id(current.id)
+        if not sender_wallet:
+             raise WalletNotFoundException(current.id)
+        
+        if sender_wallet.id==receiver_wallet.id:
+            raise WalletException(sender_wallet.id,receiver_wallet.id)
+        if sender_wallet.balance<data.amount:
+            raise InsufficientBalanceException(sender_wallet.id,data.amount,sender_wallet.balance)
+        txn_id=self.generate_txn_id()
+        txn=self.transaction_service.create_initiated(
+            txn_id=txn_id,
+            sender_id=sender_wallet.id,
+            receiver_id=receiver_wallet.id,
+            amount=data.amount,
+            payment_method=data.payment_method,
+            description=data.description
 
+            
+        )
+        self.wallet_service.deduct_balance_auth(sender_wallet.id,data.amount,current)  
+        self.wallet_service.add_balance_auth(receiver_wallet.id,data.amount,current)
+        self.transaction_service.mark_success(txn)
+        txn.payment_time = datetime.utcnow()
+        self.db.commit()        
+        self.db.refresh(txn)
+        return txn
+    
     def refund(self, txn_id: str) -> Transaction:
         with self.db.begin():
             txn = self.transaction_service.find_by_txn_id(txn_id)

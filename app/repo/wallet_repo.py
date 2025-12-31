@@ -25,3 +25,6 @@ class WalletRepo:
 
     def delete(self, wallet: Wallet):
         self.db.delete(wallet)
+
+    # def find_by_number(self,number:int):
+    #     return self.db.query(Wallet).filter(Wallet.u)

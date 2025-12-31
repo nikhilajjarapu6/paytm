@@ -9,8 +9,16 @@ class PaymentRequest(BaseModel):
     payment_method: PaymentMethod
     description: str | None = None
 
+class MobilePaymentRequest(BaseModel):
+    receiver_number: int
+    amount: Decimal
+    payment_method: PaymentMethod
+    description: str | None = None  
+
 class PaymentResponse(BaseModel):
     txn_id:str
+    sender_id:int
+    receiver_id:int
     amount:Decimal
     payment_time:datetime
     payment_method:PaymentMethod

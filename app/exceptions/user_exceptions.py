@@ -16,7 +16,7 @@ class EmailnotFOundException(PaymentException):
             status_code =404
         ) 
 class MobilenotFOundException(PaymentException):
-    def __init__(self, user_mobile:str):
+    def __init__(self, user_mobile:int):
         super().__init__(   
             code=ErrorCodes.USER_NOT_FOUND   ,
             msg=f"User not found with email: {user_mobile}"   , 

@@ -41,7 +41,11 @@ class UserService:
             raise EmailnotFOundException(email)
         ownership(current.id,fetched.id)
         return fetched
-    
+    def find_by_phone(self,phone:int)->Optional[User]:
+        fetched=self.repo.finb_by_mobile(phone)
+        if not fetched:
+            raise MobilenotFOundException(phone)
+        return fetched
     def get_user_by_auth_email(self,email:str)->Optional[User]:
         fetched= self.repo.find_by_email(email)
         if not fetched:

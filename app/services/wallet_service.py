@@ -93,6 +93,12 @@ class WalletService:
         ownership(id,fetched.user_id)
         return fetched
     
+    def wallet_by_phone(self,number:int)->Optional[Wallet]:
+        fetched =self.repo.find_by_number(number)
+        if not fetched:
+            raise UserNotFoundException(number)
+        return fetched 
+    
     def check_balance(self,wallet_id:int)->Decimal|None:
         wallet=self.repo.find_by_id(wallet_id)
         if not wallet:

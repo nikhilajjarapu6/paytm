@@ -20,7 +20,7 @@ class UserRepo:
     
     def find_by_email(self,email:str)->User|None:
         return (self.db.query(User).filter(User.email==email).first())
-    def finb_by_mobile(self,mobile:str)->User|None:
+    def finb_by_mobile(self,mobile:int)->User|None:
         return (self.db.query(User).filter(User.phone==mobile).first())
     def delete(self, user: User) -> None:
         self.db.delete(user)
