@@ -247,11 +247,126 @@ window.addEventListener('click', (e) => {
 });
 
 // Your existing toggleDetails(element) function will 
-// automatically work here because we used the same classes!
+// Global variable to store transactions for filtering/sorting
+let allTransactions = [];
+
+// Function to render transactions in the history modal
+function renderTransactions(transactions, containerId = '.tx-list') {
+    const container = document.querySelector(containerId);
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (!transactions || transactions.length === 0) {
+        container.innerHTML = `
+            <div class="no-transactions" style="padding:20px;text-align:center;color:#fff;opacity:0.9">
+                <p style="margin:0;font-weight:600">No transactions found</p>
+                <p style="margin:6px 0 0;font-size:13px;color:rgba(255,255,255,0.8)">Try adjusting your filters.</p>
+            </div>`;
+        return;
+    }
+    
+    transactions.forEach(tx => {
+        const isCredit = tx.amount > 0;
+        const txHTML = `
+            <div class="tx-container">
+                <div class="tx ${isCredit ? 'credit' : 'debit'}" onclick="toggleDetails(this)">
+                    <div class="tx-info">
+                        <span class="name">${tx.receiver_id}</span>
+                        <span class="date">${new Date(tx.created_at).toLocaleString()} • ${tx.payment_method}</span>
+                    </div>
+                    <div class="tx-right">
+                        <span class="amount">${isCredit ? '+' : '-'} ₹${Math.abs(tx.amount)}</span>
+                        <span class="arrow-icon">▼</span>
+                    </div>
+                </div>
+                <div class="tx-details">
+                    <div class="details-grid">
+                        <div class="detail-item"><strong>Txn ID</strong><span>${tx.txn_id}</span></div>
+                        <div class="detail-item"><strong>Receiver ID</strong><span>${tx.receiver_id}</span></div>
+                        <div class="detail-item"><strong>Status</strong><span class="status-success">Success</span></div>
+                        <div class="detail-item"><strong>Payment Type</strong><span>${tx.payment_method}</span></div>
+                        <div class="detail-item"><strong>Note</strong><span>${tx.description || 'N/A'}</span></div>
+                    </div>
+                </div>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', txHTML);
+    });
+}
+
+// Sort by Date (newest first, then oldest first)
+function sortByDate() {
+    const dateBtn = document.querySelector('[data-sort="date"]');
+    const isAscending = dateBtn.classList.toggle('ascending');
+    
+    const sorted = [...allTransactions].sort((a, b) => {
+        const dateA = new Date(a.created_at);
+        const dateB = new Date(b.created_at);
+        return isAscending ? dateA - dateB : dateB - dateA;
+    });
+    
+    // Update all filter buttons to show which is active
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active', 'ascending', 'descending');
+    });
+    dateBtn.classList.add('active');
+    dateBtn.classList.add(isAscending ? 'ascending' : 'descending');
+    
+    renderTransactions(sorted, '.transactions .tx-list');
+}
+
+// Sort by Amount (highest to lowest, then lowest to highest)
+function sortByAmount() {
+    const amountBtn = document.querySelector('[data-sort="amount"]');
+    const isAscending = amountBtn.classList.toggle('ascending');
+    
+    const sorted = [...allTransactions].sort((a, b) => {
+        const amountA = Math.abs(a.amount);
+        const amountB = Math.abs(b.amount);
+        return isAscending ? amountA - amountB : amountB - amountA;
+    });
+    
+    // Update all filter buttons to show which is active
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active', 'ascending', 'descending');
+    });
+    amountBtn.classList.add('active');
+    amountBtn.classList.add(isAscending ? 'ascending' : 'descending');
+    
+    renderTransactions(sorted, '.transactions .tx-list');
+}
+
+// Sort by Payment Method
+function sortByPaymentMode() {
+    const modeBtn = document.querySelector('[data-sort="mode"]');
+    const isAscending = modeBtn.classList.toggle('ascending');
+    
+    const sorted = [...allTransactions].sort((a, b) => {
+        const modeA = a.payment_method.toLowerCase();
+        const modeB = b.payment_method.toLowerCase();
+        return isAscending ? modeA.localeCompare(modeB) : modeB.localeCompare(modeA);
+    });
+    
+    // Update all filter buttons to show which is active
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active', 'ascending', 'descending');
+    });
+    modeBtn.classList.add('active');
+    modeBtn.classList.add(isAscending ? 'ascending' : 'descending');
+    
+    renderTransactions(sorted, '.transactions .tx-list');
+}
+
+// Reset filters to show all transactions
+function resetFilters() {
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active', 'ascending', 'descending');
+    });
+    renderTransactions(allTransactions, '.transactions .tx-list');
+}
 
 function triggerSearch() {
     const query = document.getElementById('dashboardSearchInput').value.trim().toLowerCase();
-    const historyModal = document.getElementById('historyModal');
     const historyTitle = historyModal.querySelector('h3');
     const historyListContainer = historyModal.querySelector('.tx-list');
 
@@ -262,7 +377,6 @@ function triggerSearch() {
 
     // Get all transactions from the page or fetch them
     // For now, we'll fetch fresh transactions and filter
-    const token = localStorage.getItem('access_token');
     
     if (!token) {
         alert("Not authenticated");
@@ -332,8 +446,9 @@ function triggerSearch() {
                         <div class="tx-details">
                             <div class="details-grid">
                                 <div class="detail-item"><strong>Txn ID</strong><span>${tx.txn_id}</span></div>
+                                <div class="detail-item"><strong>Receiver ID</strong><span>${tx.receiver_id}</span></div>
                                 <div class="detail-item"><strong>Status</strong><span class="status-success">Success</span></div>
-                                <div class="detail-item"><strong>Category</strong><span>${tx.payment_method}</span></div>
+                                <div class="detail-item"><strong>Payment Type</strong><span>${tx.payment_method}</span></div>
                                 <div class="detail-item"><strong>Note</strong><span>${tx.description || 'N/A'}</span></div>
                             </div>
                         </div>
@@ -399,6 +514,9 @@ async function loadTransactions() {
 
         if (response.ok) {
             const transactions = await response.json();
+            
+            // Store all transactions for filtering/sorting
+            allTransactions = transactions;
 
             // 3. Clear existing dashboard and history lists
             txListContainer.innerHTML = '';
@@ -437,8 +555,9 @@ async function loadTransactions() {
                         <div class="tx-details">
                             <div class="details-grid">
                                 <div class="detail-item"><strong>Txn ID</strong><span>${tx.txn_id}</span></div>
+                                <div class="detail-item"><strong>Receiver ID</strong><span>${tx.receiver_id}</span></div>
                                 <div class="detail-item"><strong>Status</strong><span class="status-success">Success</span></div>
-                                <div class="detail-item"><strong>Category</strong><span>${tx.payment_method}</span></div>
+                                <div class="detail-item"><strong>Payment Type</strong><span>${tx.payment_method}</span></div>
                                 <div class="detail-item"><strong>Note</strong><span>${tx.description || 'N/A'}</span></div>
                             </div>
                         </div>
@@ -465,8 +584,9 @@ async function loadTransactions() {
                             <div class="tx-details">
                                 <div class="details-grid">
                                     <div class="detail-item"><strong>Txn ID</strong><span>${tx.txn_id}</span></div>
+                                    <div class="detail-item"><strong>Receiver ID</strong><span>${tx.receiver_id}</span></div>
                                     <div class="detail-item"><strong>Status</strong><span class="status-success">Success</span></div>
-                                    <div class="detail-item"><strong>Category</strong><span>${tx.payment_method}</span></div>
+                                    <div class="detail-item"><strong>Payment Type</strong><span>${tx.payment_method}</span></div>
                                     <div class="detail-item"><strong>Note</strong><span>${tx.description || 'N/A'}</span></div>
                                 </div>
                             </div>
@@ -484,20 +604,61 @@ async function loadTransactions() {
 
 
 
+// Toggle between User ID and Mobile Number fields
+function toggleReceiverFields() {
+    const sendType = document.getElementById('sendType').value;
+    const userIdGroup = document.getElementById('userIdGroup');
+    const mobileGroup = document.getElementById('mobileGroup');
+    const sendReceiver = document.getElementById('sendReceiver');
+    const sendMobileNumber = document.getElementById('sendMobileNumber');
+
+    if (sendType === 'user_id') {
+        userIdGroup.style.display = 'block';
+        mobileGroup.style.display = 'none';
+        sendReceiver.required = true;
+        sendMobileNumber.required = false;
+    } else {
+        userIdGroup.style.display = 'none';
+        mobileGroup.style.display = 'block';
+        sendReceiver.required = false;
+        sendMobileNumber.required = true;
+    }
+}
+
 //function for handling sending money
 const sendMoney=document.getElementById('sendMoneyForm')
 sendMoney.addEventListener('submit',async(e)=>{
     e.preventDefault()
 
-    const payload={
-        receiver_id: document.getElementById('sendReceiver').value,
-        amount: parseFloat(document.getElementById('sendAmount').value),
-        payment_method: document.getElementById('sendMethod').value,
-        description: document.getElementById('sendDescription').value
+    const sendType = document.getElementById('sendType').value;
+    const amount = parseFloat(document.getElementById('sendAmount').value);
+    const paymentMethod = document.getElementById('sendMethod').value;
+    const description = document.getElementById('sendDescription').value;
+
+    let endpoint = "http://localhost:8000/payment/payment_send";
+    let payload;
+
+    if (sendType === 'user_id') {
+        // Send by User ID
+        payload = {
+            receiver_id: document.getElementById('sendReceiver').value,
+            amount: amount,
+            payment_method: paymentMethod,
+            description: description
+        };
+    } else {
+        // Send by Mobile Number (UPI)
+        endpoint = "http://localhost:8000/payment/upi_send";
+        payload = {
+            receiver_number: parseInt(document.getElementById('sendMobileNumber').value),
+            amount: amount,
+            payment_method: paymentMethod,
+            description: description
+        };
     }
 
     try {
-        const res=await fetch("http://localhost:8000/payment/payment_send",{
+        const res=await fetch(endpoint,{
             method:"POST",
             headers:{
                 'Authorization':`Bearer ${token}`,
@@ -513,6 +674,8 @@ sendMoney.addEventListener('submit',async(e)=>{
             
             sendMoney.reset(); 
             document.getElementById('sendModal').classList.remove('active'); 
+            document.getElementById('sendType').value = 'user_id';
+            toggleReceiverFields();
             
             loadTransactions(); 
             loadBalance(); 
