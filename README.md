@@ -83,7 +83,7 @@ paytm/
 git clone https://github.com/nikhilajjarapu6/paytm.git
 cd paytm
 
-2. Create a virtual environment
+2. Create a virtual environment (optional)
 python -m venv venv
 source venv/bin/activate
 
@@ -125,9 +125,6 @@ POST /payments/ with sender, receiver, and amount
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## License
-
-This project is open source and available under the MIT License.
 
 ## Author
 
